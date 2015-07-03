@@ -154,12 +154,12 @@
 <wire x1="100.33" y1="80.01" x2="100.33" y2="0" width="0.2032" layer="20"/>
 <wire x1="100.33" y1="0" x2="0" y2="0" width="0.2032" layer="20"/>
 <wire x1="0" y1="0" x2="0" y2="12.7" width="0.2032" layer="20"/>
-<text x="10.414" y="19.177" size="1.778" layer="20" rot="R90">5V</text>
-<text x="10.668" y="9.779" size="1.778" layer="20" rot="R90">5V</text>
-<text x="5.334" y="19.05" size="1.778" layer="20" rot="R90">GND</text>
-<text x="5.334" y="8.255" size="1.778" layer="20" rot="R90">GND</text>
-<text x="5.207" y="56.515" size="1.778" layer="20" rot="R90">GND</text>
-<text x="5.334" y="67.31" size="1.778" layer="20" rot="R90">GND</text>
+<text x="10.414" y="19.177" size="1.778" layer="21" rot="R90">5V</text>
+<text x="10.668" y="9.779" size="1.778" layer="21" rot="R90">5V</text>
+<text x="5.334" y="19.05" size="1.778" layer="21" rot="R90">GND</text>
+<text x="5.334" y="8.255" size="1.778" layer="21" rot="R90">GND</text>
+<text x="5.207" y="56.515" size="1.778" layer="21" rot="R90">GND</text>
+<text x="5.334" y="67.31" size="1.778" layer="21" rot="R90">GND</text>
 <text x="5.08" y="76.2" size="1.778" layer="21">Willow Tree Control Box</text>
 <text x="7.62" y="73.66" size="1.27" layer="21">Designed by Shlomo Zippel</text>
 <text x="40.64" y="76.2" size="1.27" layer="21">v1</text>
