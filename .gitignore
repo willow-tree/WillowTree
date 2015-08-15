@@ -3,3 +3,4 @@
 *.pro
 *.epf
 *.job
+.DS_Store
