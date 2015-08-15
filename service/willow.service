@@ -2,8 +2,8 @@
 Description=Willow Patterns
 
 [Service]
-WorkingDirectory=/opt/willow-tree/
-ExecStart=/opt/willow-tree/run-willow
+WorkingDirectory=/opt/willow/service
+ExecStart=/opt/willow/service/run-willow
 KillMode=control-group
 Restart=on-failure
 RestartSec=5
