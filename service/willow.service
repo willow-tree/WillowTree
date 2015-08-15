@@ -1,0 +1,12 @@
+[Unit]
+Description=Willow Patterns
+
+[Service]
+WorkingDirectory=/opt/service
+ExecStart=/opt/willow/run-willow
+KillMode=control-group
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

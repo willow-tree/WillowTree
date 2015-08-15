@@ -3,3 +3,6 @@
 *.pro
 *.epf
 *.job
+.DS_Store
+env
+*.pyc
