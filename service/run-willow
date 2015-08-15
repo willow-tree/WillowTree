@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/opt/openpixelcontrol/python_clients/tree_patterns.py -l /opt/openpixelcontrol/layouts/willow_tree.json
