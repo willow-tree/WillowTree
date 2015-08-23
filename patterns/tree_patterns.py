@@ -24,6 +24,7 @@ num_lights_per_vine = 34
 frames_per_second = 120
 num_vines_per_branch = 5
 total_num_lights = num_vines*num_lights_per_vine
+current_pixels = [num_lights_per_vine*num_vines]
 
 # RGB default colors for diagnostics
 red = Color((255, 0, 0))
@@ -41,6 +42,7 @@ def output_to_tree(pixels):
     time.sleep(1/frames_per_second) 
 
 def output_to_simulation(pixels):
+    current_pixels = pixels
     client.put_pixels(pixels, channel = 0)
     time.sleep(1/frames_per_second)
 
@@ -338,13 +340,46 @@ def nyan_pattern_simulation():
         t = time.time() - start_time
         pixels = [nyan(t*0.6, coord, ii, total_num_lights, random_values) for ii, coord in enumerate(coordinates.flat)]
         output_to_simulation(pixels)
+# ------------------------------
+# Blade runner spatial stripes
+def spatial(t, coord, ii, n_pixels):
+    """Compute the color of a given pixel.
 
-# Output to simulation. Uncomment the function calls below to output to the OpenGL simulator
-#output_diagnostic_simulation()
-#lava_lamp_pattern_simulation()
-#raver_plaid_tree()
-nyan_pattern_simulation()
+    t: time in seconds since the program started.
+    ii: which pixel this is, starting at 0
+    coord: the (x, y, z) position of the pixel as a tuple
+    n_pixels: the total number of pixels
 
-# Output to tree. Uncomment the function calls below to output to the tree
-#output_diagnostic_tree()
-#lava_lamp_pattern_tree()
+    Returns an (r, g, b) tuple in the range 0-255
+
+    """
+    # make moving stripes for x, y, and z
+    x, y, z = coord
+    r = color_utils.cos(x, offset=t / 2, period=1, minn=0, maxx=0.7)
+    g = color_utils.cos(y, offset=t / 2, period=1, minn=0, maxx=0.7)
+    b = color_utils.cos(z, offset=t / 2, period=1, minn=0, maxx=0.7)
+    r, g, b = color_utils.contrast((r, g, b), 0.5, 2)
+
+    # make a moving white dot showing the order of the pixels in the layout file
+    spark_ii = (t*80) % n_pixels
+    spark_rad = 8
+    spark_val = max(0, (spark_rad - color_utils.mod_dist(ii, spark_ii, n_pixels)) / spark_rad)
+    spark_val = min(1, spark_val*2)
+    r += spark_val
+    g += spark_val
+    b += spark_val
+
+    # apply gamma curve
+    # only do this on live leds, not in the simulator
+    #r, g, b = color_utils.gamma((r, g, b), 2.2)
+
+    return (r*256, g*256, b*256)
+
+def spatial_pattern_simulation():
+    start_time = time.time()
+    pixels = []
+
+    while True:
+        t = time.time() - start_time
+        pixels = [spatial(t*0.6, coord, ii, total_num_lights) for ii, coord in enumerate(coordinates.flat)]
+        output_to_simulation(pixels)
