@@ -389,7 +389,7 @@ def nyan_pattern_simulation():
         elif t > fade_out_time:
             fade_factor = (pattern_runtime-t)/fade_in_time
 
-        pixels = [nyan(t*0.6, coord, ii, total_num_lights, random_values) for ii, coord in enumerate(coordinates.flat)]
+        pixels = [nyan(t*0.6, coord, ii, total_num_lights, random_values, fade_factor) for ii, coord in enumerate(coordinates.flat)]
         output_to_simulation(pixels)
 # ------------------------------
 # Blade runner spatial stripes
