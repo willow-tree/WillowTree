@@ -24,7 +24,9 @@ num_lights_per_vine = 34
 frames_per_second = 120
 num_vines_per_branch = 5
 total_num_lights = num_vines*num_lights_per_vine
-current_pixels = [num_lights_per_vine*num_vines]
+pattern_runtime = 60*.25
+fade_in_time = .55
+fade_out_time = pattern_runtime-fade_in_time
 
 # RGB default colors for diagnostics
 red = Color((255, 0, 0))
@@ -42,7 +44,6 @@ def output_to_tree(pixels):
     time.sleep(1/frames_per_second) 
 
 def output_to_simulation(pixels):
-    current_pixels = pixels
     client.put_pixels(pixels, channel = 0)
     time.sleep(1/frames_per_second)
 
@@ -103,7 +104,10 @@ print
 # Basic function to output diagnostic pattern to simulator, 1 channel
 # Copy this function and replace between the comment blocks below to alter the pattern
 def output_diagnostic_simulation(duration):
+    timeout = time.time() + pattern_runtime
     while True:
+        if time.time() > timeout:
+            break
         pixels = []
         for vine in range(num_vines):
             for light in range(num_lights_per_vine):            
@@ -119,6 +123,16 @@ def output_diagnostic_simulation(duration):
 # Copy this function and replace between the comment blocks to alter the pattern
 def output_diagnostic_tree(duration):
     while True:
+        t = time.time() - start_time
+        fade_factor = 1.0
+
+        if t > pattern_runtime:
+            break
+        elif t < fade_in_time:
+            fade_factor = t/fade_in_time
+        elif t > fade_out_time:
+            fade_factor = (pattern_runtime-t)/fade_in_time
+
         pixels = initialize_tree_pixels()
         for index in range(total_num_lights):
             vine_index = int(index/num_lights_per_vine)
@@ -135,7 +149,7 @@ def output_diagnostic_tree(duration):
 #-------------------------------------------------------------------------------
 # Lava lamp color function
 
-def lava_lamp_pixel_color(t, coord, ii, n_pixels, random_values):
+def lava_lamp_pixel_color(t, coord, ii, n_pixels, random_values, fade_factor):
     """Compute the color of a given pixel.
 
     t: time in seconds since the program started.
@@ -192,7 +206,7 @@ def lava_lamp_pixel_color(t, coord, ii, n_pixels, random_values):
     # only do this on live leds, not in the simulator
     #r, g, b = color_utils.gamma((r, g, b), 2.2)
 
-    return (r*256, g*256, b*256)
+    return (r*256*fade_factor, g*256*fade_factor, b*256*fade_factor)
 
 def lava_lamp_pattern_simulation():
     random_values = [random.random() for ii in range(total_num_lights)]
@@ -201,16 +215,34 @@ def lava_lamp_pattern_simulation():
 
     while True:
         t = time.time() - start_time
-        pixels = [lava_lamp_pixel_color(t*0.6, coord, ii, total_num_lights, random_values) for ii, coord in enumerate(coordinates.flat)]
+        fade_factor = 1.0
+
+        if t > pattern_runtime:
+            break
+        elif t < fade_in_time:
+            fade_factor = t/fade_in_time
+        elif t > fade_out_time:
+            fade_factor = (pattern_runtime-t)/fade_in_time
+
+        pixels = [lava_lamp_pixel_color(t*0.6, coord, ii, total_num_lights, random_values, fade_factor) for ii, coord in enumerate(coordinates.flat)]
         output_to_simulation(pixels)
 
 def lava_lamp_pattern_tree():
     random_values = [random.random() for ii in range(total_num_lights)]
     start_time = time.time()
     pixels = initialize_tree_pixels()
-
+    
     while True:
         t = time.time() - start_time
+        fade_factor = 1.0
+
+        if t > pattern_runtime:
+            break
+        elif t < fade_in_time:
+            fade_factor = t/fade_in_time
+        elif t > fade_out_time:
+            fade_factor = (pattern_runtime-t)/fade_in_time
+
         for index, coord in enumerate(coordinates.flat):
             vine_index = int(index/num_lights_per_vine)
             light_index = index%num_lights_per_vine 
@@ -232,9 +264,19 @@ def raver_plaid_tree():
 
     start_time = time.time()
     sub_lights_num = num_lights_per_vine*num_vines_per_branch*2
+    
     while True:
-        pixels = []
         t = time.time() - start_time
+        fade_factor = 1.0
+
+        if t > pattern_runtime:
+            break
+        elif t < fade_in_time:
+            fade_factor = t/fade_in_time
+        elif t > fade_out_time:
+            fade_factor = (pattern_runtime-t)/fade_in_time        
+        
+        pixels = []
         for index in range(4):
             sub_pixels = []
 
@@ -246,9 +288,9 @@ def raver_plaid_tree():
                 blackstripes_offset = color_utils.cos(t, offset=0.9, period=60, minn=-0.5, maxx=3)
                 blackstripes = color_utils.clamp(blackstripes + blackstripes_offset, 0, 1)
                 # 3 sine waves for r, g, b which are out of sync with each other
-                r = blackstripes * color_utils.remap(math.cos((t/speed_r + pct*freq_r)*math.pi*2), -1, 1, 0, 256)
-                g = blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)
-                b = blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)
+                r = blackstripes * color_utils.remap(math.cos((t/speed_r + pct*freq_r)*math.pi*2), -1, 1, 0, 256)*fade_factor
+                g = blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)*fade_factor
+                b = blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)*fade_factor
                 sub_pixels.append((r, g, b))
             
             current_pixels_size = len(pixels)
@@ -265,7 +307,7 @@ def raver_plaid_tree():
 #-------------------------------------------------------------------------------
 # Nyan chase function
 
-def nyan(t, coord, ii, n_pixels, random_values):
+def nyan(t, coord, ii, n_pixels, random_values, fade_factor):
     """Compute the color of a given pixel.
 
     t: time in seconds since the program started.
@@ -329,7 +371,7 @@ def nyan(t, coord, ii, n_pixels, random_values):
     # only do this on live leds, not in the simulator
     #r, g, b = color_utils.gamma((r, g, b), 2.2)
 
-    return (r*256, g*256, b*256)
+    return (r*256*fade_factor, g*256*fade_factor, b*256*fade_factor)
 
 def nyan_pattern_simulation():
     random_values = [random.random() for ii in range(total_num_lights)]
@@ -338,11 +380,20 @@ def nyan_pattern_simulation():
 
     while True:
         t = time.time() - start_time
+        fade_factor = 1.0
+
+        if t > pattern_runtime:
+            break
+        elif t < fade_in_time:
+            fade_factor = t/fade_in_time
+        elif t > fade_out_time:
+            fade_factor = (pattern_runtime-t)/fade_in_time
+
         pixels = [nyan(t*0.6, coord, ii, total_num_lights, random_values) for ii, coord in enumerate(coordinates.flat)]
         output_to_simulation(pixels)
 # ------------------------------
 # Blade runner spatial stripes
-def spatial(t, coord, ii, n_pixels):
+def spatial(t, coord, ii, n_pixels, fade_factor):
     """Compute the color of a given pixel.
 
     t: time in seconds since the program started.
@@ -373,7 +424,7 @@ def spatial(t, coord, ii, n_pixels):
     # only do this on live leds, not in the simulator
     #r, g, b = color_utils.gamma((r, g, b), 2.2)
 
-    return (r*256, g*256, b*256)
+    return (r*256*fade_factor, g*256*fade_factor, b*256*fade_factor)
 
 def spatial_pattern_simulation():
     start_time = time.time()
@@ -381,5 +432,14 @@ def spatial_pattern_simulation():
 
     while True:
         t = time.time() - start_time
-        pixels = [spatial(t*0.6, coord, ii, total_num_lights) for ii, coord in enumerate(coordinates.flat)]
+        fade_factor = 1.0
+
+        if t > pattern_runtime:
+            break
+        elif t < fade_in_time:
+            fade_factor = t/fade_in_time
+        elif t > fade_out_time:
+            fade_factor = (pattern_runtime-t)/fade_in_time
+
+        pixels = [spatial(t*0.6, coord, ii, total_num_lights, fade_factor) for ii, coord in enumerate(coordinates.flat)]
         output_to_simulation(pixels)

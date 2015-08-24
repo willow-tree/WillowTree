@@ -15,6 +15,7 @@ def run_tree():
 		try:
 			# Pick a random number 
 			pattern_number = random.randint(1,len(patterns))
+			print "Choosing pattern " + str(pattern_number)
 			func = patterns.get(pattern_number, lambda: "nothing")
 			func()
 		except Exception as e:
