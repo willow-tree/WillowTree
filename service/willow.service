@@ -2,7 +2,7 @@
 Description=Willow Patterns
 
 [Service]
-WorkingDirectory=/opt/service
+WorkingDirectory=/opt/willow
 ExecStart=/opt/willow/run-willow
 KillMode=control-group
 Restart=on-failure
