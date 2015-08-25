@@ -206,7 +206,7 @@ def lava_lamp_pixel_color(t, coord, ii, n_pixels, random_values, fade_factor):
     # only do this on live leds, not in the simulator
     #r, g, b = color_utils.gamma((r, g, b), 2.2)
 
-    return (r*256*fade_factor, g*256*fade_factor, b*256*fade_factor)
+    return (max(0.1,r*256*fade_factor), max(0.1,g*256*fade_factor), max(0.1,b*256*fade_factor))
 
 def lava_lamp_pattern_simulation():
     random_values = [random.random() for ii in range(total_num_lights)]
@@ -288,9 +288,9 @@ def raver_plaid_tree():
                 blackstripes_offset = color_utils.cos(t, offset=0.9, period=60, minn=-0.5, maxx=3)
                 blackstripes = color_utils.clamp(blackstripes + blackstripes_offset, 0, 1)
                 # 3 sine waves for r, g, b which are out of sync with each other
-                r = blackstripes * color_utils.remap(math.cos((t/speed_r + pct*freq_r)*math.pi*2), -1, 1, 0, 256)*fade_factor
-                g = blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)*fade_factor
-                b = blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)*fade_factor
+                r = max(0.1, blackstripes * color_utils.remap(math.cos((t/speed_r + pct*freq_r)*math.pi*2), -1, 1, 0, 256)*fade_factor)
+                g = max(0.1, blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)*fade_factor)
+                b = max(0.1, blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)*fade_factor)
                 sub_pixels.append((r, g, b))
             
             current_pixels_size = len(pixels)
@@ -371,7 +371,7 @@ def nyan(t, coord, ii, n_pixels, random_values, fade_factor):
     # only do this on live leds, not in the simulator
     #r, g, b = color_utils.gamma((r, g, b), 2.2)
 
-    return (r*256*fade_factor, g*256*fade_factor, b*256*fade_factor)
+    return (max(0.1,r*256*fade_factor), max(0.1,g*256*fade_factor), max(0.1,b*256*fade_factor))
 
 def nyan_pattern_simulation():
     random_values = [random.random() for ii in range(total_num_lights)]
@@ -424,7 +424,7 @@ def spatial(t, coord, ii, n_pixels, fade_factor):
     # only do this on live leds, not in the simulator
     #r, g, b = color_utils.gamma((r, g, b), 2.2)
 
-    return (r*256*fade_factor, g*256*fade_factor, b*256*fade_factor)
+    return (max(0.1,r*256*fade_factor), max(0.1,g*256*fade_factor), max(0.1,b*256*fade_factor))
 
 def spatial_pattern_simulation():
     start_time = time.time()
