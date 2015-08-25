@@ -118,34 +118,6 @@ def output_diagnostic_simulation(duration):
 
         # Output the lights
         output_to_simulation(pixels)
-
-# Basic function to diagnostic pattern to tree, 40 channels
-# Copy this function and replace between the comment blocks to alter the pattern
-def output_diagnostic_tree(duration):
-    while True:
-        t = time.time() - start_time
-        fade_factor = 1.0
-
-        if t > pattern_runtime:
-            break
-        elif t < fade_in_time:
-            fade_factor = t/fade_in_time
-        elif t > fade_out_time:
-            fade_factor = (pattern_runtime-t)/fade_in_time
-
-        pixels = initialize_tree_pixels()
-        for index in range(total_num_lights):
-            vine_index = int(index/num_lights_per_vine)
-            light_index = index%num_lights_per_vine  
-
-            # Change starting here for patterns
-            # Diagnostic pattern displays 5 different colors per branch (each vine is a different color),
-            # replicated across all 8 branches.
-            pixels[vine_index][light_index] = diagnostic_colors[vine_index%num_vines_per_branch]
-            # End of pattern block
-
-        # Output the lights
-        output_to_tree(pixels)
 #-------------------------------------------------------------------------------
 # Lava lamp color function
 
@@ -227,27 +199,6 @@ def lava_lamp_pattern_simulation():
         pixels = [lava_lamp_pixel_color(t*0.6, coord, ii, total_num_lights, random_values, fade_factor) for ii, coord in enumerate(coordinates.flat)]
         output_to_simulation(pixels)
 
-def lava_lamp_pattern_tree():
-    random_values = [random.random() for ii in range(total_num_lights)]
-    start_time = time.time()
-    pixels = initialize_tree_pixels()
-    
-    while True:
-        t = time.time() - start_time
-        fade_factor = 1.0
-
-        if t > pattern_runtime:
-            break
-        elif t < fade_in_time:
-            fade_factor = t/fade_in_time
-        elif t > fade_out_time:
-            fade_factor = (pattern_runtime-t)/fade_in_time
-
-        for index, coord in enumerate(coordinates.flat):
-            vine_index = int(index/num_lights_per_vine)
-            light_index = index%num_lights_per_vine 
-            pixels[vine_index][light_index] = lava_lamp_pixel_color(t*0.6, coord, index, total_num_lights, random_values)
-        output_to_tree(pixels)
 #----------------------------------------------
 # Raver plaid
 def raver_plaid_tree():
