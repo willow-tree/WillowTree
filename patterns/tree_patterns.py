@@ -118,34 +118,6 @@ def output_diagnostic_simulation(duration):
 
         # Output the lights
         output_to_simulation(pixels)
-
-# Basic function to diagnostic pattern to tree, 40 channels
-# Copy this function and replace between the comment blocks to alter the pattern
-def output_diagnostic_tree(duration):
-    while True:
-        t = time.time() - start_time
-        fade_factor = 1.0
-
-        if t > pattern_runtime:
-            break
-        elif t < fade_in_time:
-            fade_factor = t/fade_in_time
-        elif t > fade_out_time:
-            fade_factor = (pattern_runtime-t)/fade_in_time
-
-        pixels = initialize_tree_pixels()
-        for index in range(total_num_lights):
-            vine_index = int(index/num_lights_per_vine)
-            light_index = index%num_lights_per_vine  
-
-            # Change starting here for patterns
-            # Diagnostic pattern displays 5 different colors per branch (each vine is a different color),
-            # replicated across all 8 branches.
-            pixels[vine_index][light_index] = diagnostic_colors[vine_index%num_vines_per_branch]
-            # End of pattern block
-
-        # Output the lights
-        output_to_tree(pixels)
 #-------------------------------------------------------------------------------
 # Lava lamp color function
 
@@ -177,9 +149,9 @@ def lava_lamp_pixel_color(t, coord, ii, n_pixels, random_values, fade_factor):
 #         z += ((ii*147)%7) / n_pixels * 44.34 + 0.1
 
     # make x, y, z -> r, g, b sine waves
-    r = color_utils.cos(x, offset=t / 4, period=2, minn=0, maxx=1)
-    g = color_utils.cos(y, offset=t / 4, period=2, minn=0, maxx=1)
-    b = color_utils.cos(z, offset=t / 4, period=2, minn=0, maxx=1)
+    r = color_utils.cos(x, offset=t / 6, period=3, minn=0, maxx=1)
+    g = color_utils.cos(y, offset=t / 6, period=3, minn=0, maxx=1)
+    b = color_utils.cos(z, offset=t / 6, period=3, minn=0, maxx=1)
     r, g, b = color_utils.contrast((r, g, b), 0.5, 1.5)
 #     r, g, b = color_utils.clip_black_by_luminance((r, g, b), 0.5)
 
@@ -188,9 +160,9 @@ def lava_lamp_pixel_color(t, coord, ii, n_pixels, random_values, fade_factor):
 #         r, g, b = b, g, r
 
     # black out regions
-    r2 = color_utils.cos(x, offset=t / 10 + 12.345, period=3, minn=0, maxx=1)
-    g2 = color_utils.cos(y, offset=t / 10 + 24.536, period=3, minn=0, maxx=1)
-    b2 = color_utils.cos(z, offset=t / 10 + 34.675, period=3, minn=0, maxx=1)
+    r2 = color_utils.cos(x, offset=t / 10 + 12.345, period=1.2, minn=0, maxx=1)
+    g2 = color_utils.cos(y, offset=t / 10 + 24.536, period=1.2, minn=0, maxx=1)
+    b2 = color_utils.cos(z, offset=t / 10 + 34.675, period=1.2, minn=0, maxx=1)
     clampdown = (r2 + g2 + b2)/2
     clampdown = color_utils.remap(clampdown, 0.8, 0.9, 0, 1)
     clampdown = color_utils.clamp(clampdown, 0, 1)
@@ -206,7 +178,7 @@ def lava_lamp_pixel_color(t, coord, ii, n_pixels, random_values, fade_factor):
     # only do this on live leds, not in the simulator
     #r, g, b = color_utils.gamma((r, g, b), 2.2)
 
-    return (r*256*fade_factor, g*256*fade_factor, b*256*fade_factor)
+    return (max(0.1,r*256*fade_factor), max(0.1,g*256*fade_factor), max(0.1,b*256*fade_factor))
 
 def lava_lamp_pattern_simulation():
     random_values = [random.random() for ii in range(total_num_lights)]
@@ -227,27 +199,6 @@ def lava_lamp_pattern_simulation():
         pixels = [lava_lamp_pixel_color(t*0.6, coord, ii, total_num_lights, random_values, fade_factor) for ii, coord in enumerate(coordinates.flat)]
         output_to_simulation(pixels)
 
-def lava_lamp_pattern_tree():
-    random_values = [random.random() for ii in range(total_num_lights)]
-    start_time = time.time()
-    pixels = initialize_tree_pixels()
-    
-    while True:
-        t = time.time() - start_time
-        fade_factor = 1.0
-
-        if t > pattern_runtime:
-            break
-        elif t < fade_in_time:
-            fade_factor = t/fade_in_time
-        elif t > fade_out_time:
-            fade_factor = (pattern_runtime-t)/fade_in_time
-
-        for index, coord in enumerate(coordinates.flat):
-            vine_index = int(index/num_lights_per_vine)
-            light_index = index%num_lights_per_vine 
-            pixels[vine_index][light_index] = lava_lamp_pixel_color(t*0.6, coord, index, total_num_lights, random_values)
-        output_to_tree(pixels)
 #----------------------------------------------
 # Raver plaid
 def raver_plaid_tree():
@@ -288,9 +239,9 @@ def raver_plaid_tree():
                 blackstripes_offset = color_utils.cos(t, offset=0.9, period=60, minn=-0.5, maxx=3)
                 blackstripes = color_utils.clamp(blackstripes + blackstripes_offset, 0, 1)
                 # 3 sine waves for r, g, b which are out of sync with each other
-                r = blackstripes * color_utils.remap(math.cos((t/speed_r + pct*freq_r)*math.pi*2), -1, 1, 0, 256)*fade_factor
-                g = blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)*fade_factor
-                b = blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)*fade_factor
+                r = max(0.1, blackstripes * color_utils.remap(math.cos((t/speed_r + pct*freq_r)*math.pi*2), -1, 1, 0, 256)*fade_factor)
+                g = max(0.1, blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)*fade_factor)
+                b = max(0.1, blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)*fade_factor)
                 sub_pixels.append((r, g, b))
             
             current_pixels_size = len(pixels)
@@ -371,7 +322,7 @@ def nyan(t, coord, ii, n_pixels, random_values, fade_factor):
     # only do this on live leds, not in the simulator
     #r, g, b = color_utils.gamma((r, g, b), 2.2)
 
-    return (r*256*fade_factor, g*256*fade_factor, b*256*fade_factor)
+    return (max(0.1,r*256*fade_factor), max(0.1,g*256*fade_factor), max(0.1,b*256*fade_factor))
 
 def nyan_pattern_simulation():
     random_values = [random.random() for ii in range(total_num_lights)]
@@ -424,7 +375,7 @@ def spatial(t, coord, ii, n_pixels, fade_factor):
     # only do this on live leds, not in the simulator
     #r, g, b = color_utils.gamma((r, g, b), 2.2)
 
-    return (r*256*fade_factor, g*256*fade_factor, b*256*fade_factor)
+    return (max(0.1,r*256*fade_factor), max(0.1,g*256*fade_factor), max(0.1,b*256*fade_factor))
 
 def spatial_pattern_simulation():
     start_time = time.time()
