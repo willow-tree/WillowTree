@@ -63,10 +63,10 @@ def cycle_down_continuous(vine_pixel,t,period):
 	return cycle_up_continuous(constants.num_lights_per_vine - vine_pixel - 1,t,period)
 
 def cycle_in_cosine(vine_pixel,t,period):
-	return math.cos(2 * math.pi * (t + 1.0 * vine_pixel / constants.num_lights_per_vine))
+	return math.cos((2 * math.pi /period) * (t + 1.0 * vine_pixel / constants.num_lights_per_vine))
 
 def cycle_up_cosine(vine_pixel,t,period):
-	return math.cos(2 * math.pi * (t + 1.0 * vine_pixel / constants.num_lights_per_vine))
+	return math.cos((2 * math.pi / period) * (t + 1.0 * vine_pixel / constants.num_lights_per_vine))
 
 def cycle_down_cosine(vine_pixel,t,period):
 	return cycle_up_cosine(constants.num_lights_per_vine - vine_pixel - 1,t,period)
@@ -153,7 +153,7 @@ def cycle_value_down(branch,branch_vine,pixel,t):
 	period = 4
 	value = 255 * cycle_down_continuous(pixel,t,period)
 	return color_utils.hsv_to_rgb(hue,saturation,value)
-	
+
 # def example_cycle_hue_up(branch,branch_vine,vine_pixel,t):
 # 	saturation = 0.5
 # 	value = 200
