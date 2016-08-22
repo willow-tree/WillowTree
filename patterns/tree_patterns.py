@@ -24,7 +24,7 @@ num_lights_per_vine = 34
 frames_per_second = 120
 num_vines_per_branch = 5
 total_num_lights = num_vines*num_lights_per_vine
-pattern_runtime = 60*.25
+pattern_runtime = 60*1
 fade_in_time = .55
 fade_out_time = pattern_runtime-fade_in_time
 
@@ -393,4 +393,179 @@ def spatial_pattern_simulation():
             fade_factor = (pattern_runtime-t)/fade_in_time
 
         pixels = [spatial(t*0.6, coord, ii, total_num_lights, fade_factor) for ii, coord in enumerate(coordinates.flat)]
+        output_to_simulation(pixels)
+####################################################
+# Rainbow fall (for Shlomo)
+def rainbow(t, coord, ii, n_pixels, random_values, fade_factor):
+    """Compute the color of a given pixel.
+
+    t: time in seconds since the program started.
+    ii: which pixel this is, starting at 0
+    coord: the (x, y, z) position of the pixel as a tuple
+    n_pixels: the total number of pixels
+    random_values: a list containing a constant random value for each pixel
+
+    Returns an (r, g, b) tuple in the range 0-255
+
+    """
+    # make moving stripes for x, y, and z
+    x, y, z = coord
+    y += color_utils.cos(x + 0.2*z, offset=0, period=1, minn=0, maxx=0.6)
+    z += color_utils.cos(x, offset=0, period=1, minn=0, maxx=0.3)
+    x += color_utils.cos(y + z, offset=0, period=1.5, minn=0, maxx=0.2)
+
+    # rotate
+    x, y, z = y, z, x
+
+    # shift some of the pixels to a new xyz location
+    if ii % 7 == 0:
+        x += ((ii*123)%5) / n_pixels * 32.12
+        y += ((ii*137)%5) / n_pixels * 22.23
+        z += ((ii*147)%7) / n_pixels * 44.34
+
+    # make x, y, z -> r, g, b sine waves
+    r = color_utils.cos(x, offset=t/3, period=-3, minn=0, maxx=1)
+    g = color_utils.cos(y, offset=t/3, period=-3, minn=0, maxx=1)
+    b = color_utils.cos(z, offset=t/3, period=-3, minn=0, maxx=1)
+    r, g, b = color_utils.contrast((r, g, b), 0.5, 1.5)
+
+    return (max(0.1,r*256*fade_factor), max(0.1,g*256*fade_factor), max(0.1,b*256*fade_factor))
+
+def rainbow_simulation():
+    random_values = [random.random() for ii in range(total_num_lights)]
+    start_time = time.time()
+    pixels = []
+
+    while True:
+        t = time.time() - start_time
+        fade_factor = 1.0
+
+        if t > pattern_runtime:
+            break
+        elif t < fade_in_time:
+            fade_factor = t/fade_in_time
+        elif t > fade_out_time:
+            fade_factor = (pattern_runtime-t)/fade_in_time
+
+        pixels = [rainbow(t*0.6, coord, ii, total_num_lights, random_values, fade_factor) for ii, coord in enumerate(coordinates.flat)]
+        output_to_simulation(pixels)
+####################################
+# whoa...
+def acid(t, coord, ii, n_pixels, random_values, fade_factor):
+    """Compute the color of a given pixel.
+
+    t: time in seconds since the program started.
+    ii: which pixel this is, starting at 0
+    coord: the (x, y, z) position of the pixel as a tuple
+    n_pixels: the total number of pixels
+    random_values: a list containing a constant random value for each pixel
+
+    Returns an (r, g, b) tuple in the range 0-255
+
+    """
+    # make moving stripes for x, y, and z
+    x, y, z = coord
+    y += color_utils.cos(x + 0.2*z, offset=0, period=1, minn=0, maxx=0.6)
+    z += color_utils.cos(x, offset=0, period=1, minn=0, maxx=0.3)
+    x += color_utils.cos(y + z, offset=0, period=1.5, minn=0, maxx=0.2)
+
+    # rotate
+    x, y, z = y, z, x
+
+    # shift some of the pixels to a new xyz location
+    if ii % 7 == 0:
+        x += ((ii*123)%5) / n_pixels * 32.12
+        y += ((ii*137)%5) / n_pixels * 22.23
+        z += ((ii*147)%7) / n_pixels * 44.34
+
+    # make x, y, z -> r, g, b sine waves
+    r = color_utils.cos(x, offset=t/3, period=-2, minn=0, maxx=1)
+    g = color_utils.cos(y, offset=t/3, period=-2, minn=0, maxx=1)
+    b = color_utils.cos(z, offset=t/3, period=-2, minn=0, maxx=1)
+
+    r = color_utils.cos(r, offset=t/3, period=-2, minn=0, maxx=1)
+    g = color_utils.cos(g, offset=t/3, period=-2, minn=0, maxx=1)
+    b = color_utils.cos(b, offset=t/3, period=-2, minn=0, maxx=1)
+    r, g, b = color_utils.contrast((r, g, b), 0.5, 1.5)
+
+    return (max(0.1,r*256*fade_factor), max(0.1,g*256*fade_factor), max(0.1,b*256*fade_factor))
+
+def acid_simulation():
+    random_values = [random.random() for ii in range(total_num_lights)]
+    start_time = time.time()
+    pixels = []
+
+    while True:
+        t = time.time() - start_time
+        fade_factor = 1.0
+
+        if t > pattern_runtime:
+            break
+        elif t < fade_in_time:
+            fade_factor = t/fade_in_time
+        elif t > fade_out_time:
+            fade_factor = (pattern_runtime-t)/fade_in_time
+
+        pixels = [acid(t*0.6, coord, ii, total_num_lights, random_values, fade_factor) for ii, coord in enumerate(coordinates.flat)]
+        output_to_simulation(pixels)
+####################################
+# Spin?
+def reorderCoord(coordinates):
+    reordered = []
+    for v in range(num_vines_per_branch):
+        for b in range(8):
+            for coord in coordinates[(v*b)+v]:
+                reordered.append(coord)
+    return reordered
+
+
+def spin(t, coord, ii, n_pixels, random_values, fade_factor):
+    """Compute the color of a given pixel.
+
+    t: time in seconds since the program started.
+    ii: which pixel this is, starting at 0
+    coord: the (x, y, z) position of the pixel as a tuple
+    n_pixels: the total number of pixels
+    random_values: a list containing a constant random value for each pixel
+
+    Returns an (r, g, b) tuple in the range 0-255
+
+    """
+    x, y, z = coord
+    v = (ii%num_lights_per_vine)/num_vines
+
+    # shift some of the pixels to a new xyz location
+    if ii % 7 == 0:
+        x += ((ii*123)%5) / n_pixels * 32.12
+        y += ((ii*137)%5) / n_pixels * 22.23
+        z += ((ii*147)%7) / n_pixels * 44.34
+
+    # rotate
+    x, y, z = y, x, z
+
+    # make x, y, z -> r, g, b sine waves
+    r = color_utils.cos(1-v*x, offset=t/3, period=2, minn=0, maxx=1)
+    g = color_utils.cos(v*y, offset=t/3, period=2, minn=0, maxx=1)
+    b = color_utils.cos(v*z, offset=t/3, period=2, minn=0, maxx=1)
+    r, g, b = color_utils.contrast((r, g, b), 0.5, 1.5)
+
+    return (max(0.1,r*256*fade_factor), max(0.1,g*256*fade_factor), max(0.1,b*256*fade_factor))
+
+def spin_simulation():
+    random_values = [random.random() for ii in range(total_num_lights)]
+    start_time = time.time()
+    pixels = []
+
+    while True:
+        t = time.time() - start_time
+        fade_factor = 1.0
+
+        if t > pattern_runtime:
+            break
+        elif t < fade_in_time:
+            fade_factor = t/fade_in_time
+        elif t > fade_out_time:
+            fade_factor = (pattern_runtime-t)/fade_in_time
+
+        pixels = [spin(t*0.6, coord, ii, total_num_lights, random_values, fade_factor) for ii, coord in enumerate(coordinates.flat)]
         output_to_simulation(pixels)

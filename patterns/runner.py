@@ -87,6 +87,9 @@ print hsv_to_rgb(0.75,0.5,200)
 print hsv_to_rgb(0.75,0.75,200)
 print hsv_to_rgb(0.75,1,200)
 
+print "cosine"
+print math.cos(0.5)
+print math.pi
 
 #SERVER = "10.0.0.9:7890"
 SERVER = "127.0.0.1:7890"
@@ -151,20 +154,42 @@ def cycle_clockwise_continuous(branch,t,period):
 	return (t / period + 1.0 * branch / BRANCHES) % 1
 
 def cycle_counterclockwise_continuous(branch,t,period):
-	return 1.0 - cycle_clockwise_continuous(branch,t,period)
+	return cycle_clockwise_continuous(BRANCHES - branch - 1,t,period)
 
 def cycle_in_continuous(branch_vine,t,period):
 	return (t / period + 1.0 * branch_vine / VINES_PER_BRANCH) % 1
 
 def cycle_out_continuous(branch_vine,t,period):
-	return 1.0 - cycle_out_continuous(branch_vine,t,period)
+	return cycle_in_continuous(VINES_PER_BRANCH - branch_vine - 1,t,period)
 
 def cycle_up_continuous(vine_pixel,t,period):
 	return (t  / period + 1.0 * vine_pixel / PIXELS_PER_VINE) % 1
 
 def cycle_down_continuous(vine_pixel,t,period):
-	return 1.0 - cycle_up_continuous(vine_pixel,t,period)
+	return cycle_up_continuous(PIXELS_PER_VINE - vine_pixel - 1,t,period)
 
+def cycle_in_cosine(vine_pixel,t,period):
+	return math.cos(2 * math.pi * (t + 1.0 * vine_pixel / PIXELS_PER_VINE))
+
+def cycle_up_cosine(vine_pixel,t,period):
+	return math.cos(2 * math.pi * (t + 1.0 * vine_pixel / PIXELS_PER_VINE))
+
+def cycle_down_cosine(vine_pixel,t,period):
+	return cycle_up_cosine(PIXELS_PER_VINE - vine_pixel - 1,t,period)
+
+def cycle_value_up_cosine(branch,branch_vine,vine_pixel,t):
+	saturation = 0.5
+	hue = 0.3
+	period = 4
+	value = 255 * cycle_up_cosine(vine_pixel,t,period)
+	return hsv_to_rgb(hue,saturation,value)
+
+def cycle_value_down_cosine(branch,branch_vine,vine_pixel,t):
+	saturation = 0.5
+	hue = 0.3
+	period = 4
+	value = 255 * cycle_down_cosine(vine_pixel,t,period)
+	return hsv_to_rgb(hue,saturation,value)
 
 
 def cycle_hue_around(branch,branch_vine,pixel,t):
@@ -222,12 +247,18 @@ def cycle_value_around(branch,branch_vine,pixel,t):
 	return hsv_to_rgb(hue,saturation,value)
 
 def cycle_value_up(branch,branch_vine,pixel,t):
-	hue = 0.5
+	hue = 0.3
 	saturation = 0.5
 	period = 4
 	value = 255 * cycle_up_continuous(pixel,t,period)
 	return hsv_to_rgb(hue,saturation,value)
 
+def cycle_value_down(branch,branch_vine,pixel,t):
+	hue = 0.7
+	saturation = 0.5
+	period = 4
+	value = 255 * cycle_down_continuous(pixel,t,period)
+	return hsv_to_rgb(hue,saturation,value)
 # def example_cycle_hue_up(branch,branch_vine,vine_pixel,t):
 # 	saturation = 0.5
 # 	value = 200
@@ -303,8 +334,10 @@ def add_sparkles(pixels, sparkle_factor):
 patterns = [
 #	cycle_hue_around,
 #	cycle_hue_out,
-	cycle_value_out,
-	cycle_value_in,
+cycle_value_up_cosine,
+cycle_value_down_cosine,
+cycle_value_up,
+cycle_value_down,
 	# cycle_value_around,
 	# make_every_other_orchid,
 #	make_every_other_green,
