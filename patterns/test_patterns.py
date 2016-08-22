@@ -2,18 +2,18 @@
 import library
 import color_utils
 
-def cycle_value_up_cosine(branch,branch_vine,vine_pixel,t):
-	saturation = 0.5
-	hue = 0.3
-	period = 4
-	value = 255 * library.cycle_up_cosine(vine_pixel,t,period)
-	return color_utils.hsv_to_rgb(hue,saturation,value)
+def cycle_value_in_cosine(branch,branch_vine,vine_pixel,t):
+    hue = 0.3
+    saturation = 0.9
+    period = 4
+    value = 255 * library.cycle_in_cosine(branch_vine,t,period)
+    return color_utils.hsv_to_rgb(hue,saturation,value)
 
-def cycle_value_down_cosine(branch,branch_vine,vine_pixel,t):
-	saturation = 0.5
-	hue = 0.3
+def cycle_value_out_cosine(branch,branch_vine,vine_pixel,t):
+	hue = 0.7
+	saturation = 0.9
 	period = 4
-	value = 255 * library.cycle_down_cosine(vine_pixel,t,period)
+	value = 255 * library.cycle_out_cosine(branch_vine,t,period)
 	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 
@@ -68,8 +68,8 @@ def cycle_value_down(branch,branch_vine,pixel,t):
 	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 active = [
-    cycle_value_up_cosine,
-    cycle_value_down_cosine,
-    cycle_value_up,
-    cycle_value_down,
+    cycle_value_in_cosine,
+    cycle_value_out_cosine,
+    # cycle_value_up,
+    # cycle_value_down,
 ]
