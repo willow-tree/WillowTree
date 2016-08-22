@@ -10,6 +10,8 @@ import numpy
 num_vines = 40
 num_lights_per_vine = 34
 num_vines_per_branch = 5
+num_branches=8
+num_pixels = num_lights_per_vine * num_vines_per_branch * num_branches
 
 total_num_lights = num_vines*num_lights_per_vine
 
@@ -17,6 +19,7 @@ frames_per_second = 60
 pattern_runtime = 60*.25
 fade_in_time = .55
 fade_out_time = pattern_runtime-fade_in_time
+time_per_pattern = 5; # in minutes
 
 # RGB default colors for diagnostics
 red = Color((255, 0, 0))

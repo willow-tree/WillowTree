@@ -7,7 +7,10 @@ patterns = {
 		1: tree_patterns.lava_lamp_pattern_simulation,
 		2: tree_patterns.raver_plaid_tree,
 		3: tree_patterns.nyan_pattern_simulation,
-		4: tree_patterns.spatial_pattern_simulation
+		4: tree_patterns.spatial_pattern_simulation,
+		5: tree_patterns.rainbow_simulation,
+		6: tree_patterns.acid_simulation,
+		7: tree_patterns.spin_simulation
 }
 
 def run_tree():
