@@ -1,111 +1,27 @@
 #!/usr/bin/env python
+import constants
 import opc
 import time
 import numpy
 import random
 import serial
 import optparse
-
-import lava_lamp
-
-import opc
 import color_utils
 import math
 from colorutils import Color
+
+import lava_lamp
 
 try:
     import json
 except ImportError:
     import simplejson as json
 
-import constants
-
-import color_utils
-import numpy
-import math
-from colorutils import Color
-
-# HSV: Hue, Saturation, Value
-# H: position in the spectrum
-# S: color saturation ("purity")
-# V: color brightness
-
-def rgb_to_hsv(r, g, b):
-    maxc = max(r, g, b)
-    minc = min(r, g, b)
-    v = maxc
-    if minc == maxc:
-        return 0.0, 0.0, v
-    s = (maxc-minc) / maxc
-    rc = (maxc-r) / (maxc-minc)
-    gc = (maxc-g) / (maxc-minc)
-    bc = (maxc-b) / (maxc-minc)
-    if r == maxc:
-        h = bc-gc
-    elif g == maxc:
-        h = 2.0+rc-bc
-    else:
-        h = 4.0+gc-rc
-    h = (h/6.0) % 1.0
-    return h, s, v
-
-def hsv_to_rgb(h, s, v):
-    if s == 0.0:
-        return v, v, v
-    i = int(h*6.0) # XXX assume int() truncates!
-    f = (h*6.0) - i
-    p = v*(1.0 - s)
-    q = v*(1.0 - s*f)
-    t = v*(1.0 - s*(1.0-f))
-    i = i%6
-    if i == 0:
-        return v, t, p
-    if i == 1:
-        return q, v, p
-    if i == 2:
-        return p, v, t
-    if i == 3:
-        return p, q, v
-    if i == 4:
-        return t, p, v
-    if i == 5:
-        return v, p, q
-
-
-print "hue"
-print hsv_to_rgb(0,0.5,200)
-print hsv_to_rgb(0.25,0.5,200)
-print hsv_to_rgb(0.5,0.5,200)
-print hsv_to_rgb(0.75,0.5,200)
-print hsv_to_rgb(1,0.5,200)
-
-
-print "saturation"
-print hsv_to_rgb(0.75,0,200)
-print hsv_to_rgb(0.75,0.25,200)
-print hsv_to_rgb(0.75,0.5,200)
-print hsv_to_rgb(0.75,0.75,200)
-print hsv_to_rgb(0.75,1,200)
-
-print "cosine"
-print math.cos(0.5)
-print math.pi
-
 #SERVER = "10.0.0.9:7890"
 SERVER = "127.0.0.1:7890"
 #SERIAL = "/dev/ttyUSB0"
 #SERIAL = "/dev/tty.wchusbserial1420"
 SERIAL = None
-FPS = 60
-
-BRANCHES = 8
-VINES_PER_BRANCH = 5
-PIXELS_PER_VINE = 34
-
-PPV = PIXELS_PER_VINE
-VINES = BRANCHES * VINES_PER_BRANCH
-PIXELS = VINES * PIXELS_PER_VINE
-
 #-----------------------------------------------
 # command line
 
@@ -125,71 +41,49 @@ if not options.layout:
 
 layout = json.load(open(options.layout))
 constants.init_coordinates(layout)
-
-
-TIME_PER_PATTERN = 5
-
 #----------------------------------------
-# Constants
-# num_vines = 40
-# num_lights_per_vine = 34
-# frames_per_second = 120
-# num_vines_per_branch = 5
-# total_num_lights = num_vines*num_lights_per_vine
-# pattern_runtime = 60*.25
-# fade_in_time = .55
-# fade_out_time = pattern_runtime-fade_in_time
-
-# RGB default colors for diagnostics
-RED = Color((255, 0, 0))
-GREEN = Color((0, 255, 0))
-BLUE = Color((0, 0, 255))
-GOLD = Color((255, 223, 0))
-ORCHID = Color((148, 0, 211))
-diagnostic_colors = [RED, GREEN, BLUE, GOLD, ORCHID]
-
 
 #ideal UI
 def cycle_clockwise_continuous(branch,t,period):
-	return (t / period + 1.0 * branch / BRANCHES) % 1
+	return (t / period + 1.0 * branch / constants.num_branches) % 1
 
 def cycle_counterclockwise_continuous(branch,t,period):
-	return cycle_clockwise_continuous(BRANCHES - branch - 1,t,period)
+	return cycle_clockwise_continuous(constants.num_branches - branch - 1,t,period)
 
 def cycle_in_continuous(branch_vine,t,period):
-	return (t / period + 1.0 * branch_vine / VINES_PER_BRANCH) % 1
+	return (t / period + 1.0 * branch_vine / constants.num_vines_per_branch) % 1
 
 def cycle_out_continuous(branch_vine,t,period):
-	return cycle_in_continuous(VINES_PER_BRANCH - branch_vine - 1,t,period)
+	return cycle_in_continuous(constants.num_vines_per_branch - branch_vine - 1,t,period)
 
 def cycle_up_continuous(vine_pixel,t,period):
-	return (t  / period + 1.0 * vine_pixel / PIXELS_PER_VINE) % 1
+	return (t  / period + 1.0 * vine_pixel / constants.num_lights_per_vine) % 1
 
 def cycle_down_continuous(vine_pixel,t,period):
-	return cycle_up_continuous(PIXELS_PER_VINE - vine_pixel - 1,t,period)
+	return cycle_up_continuous(constants.num_lights_per_vine - vine_pixel - 1,t,period)
 
 def cycle_in_cosine(vine_pixel,t,period):
-	return math.cos(2 * math.pi * (t + 1.0 * vine_pixel / PIXELS_PER_VINE))
+	return math.cos(2 * math.pi * (t + 1.0 * vine_pixel / constants.num_lights_per_vine))
 
 def cycle_up_cosine(vine_pixel,t,period):
-	return math.cos(2 * math.pi * (t + 1.0 * vine_pixel / PIXELS_PER_VINE))
+	return math.cos(2 * math.pi * (t + 1.0 * vine_pixel / constants.num_lights_per_vine))
 
 def cycle_down_cosine(vine_pixel,t,period):
-	return cycle_up_cosine(PIXELS_PER_VINE - vine_pixel - 1,t,period)
+	return cycle_up_cosine(constants.num_lights_per_vine - vine_pixel - 1,t,period)
 
 def cycle_value_up_cosine(branch,branch_vine,vine_pixel,t):
 	saturation = 0.5
 	hue = 0.3
 	period = 4
 	value = 255 * cycle_up_cosine(vine_pixel,t,period)
-	return hsv_to_rgb(hue,saturation,value)
+	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 def cycle_value_down_cosine(branch,branch_vine,vine_pixel,t):
 	saturation = 0.5
 	hue = 0.3
 	period = 4
 	value = 255 * cycle_down_cosine(vine_pixel,t,period)
-	return hsv_to_rgb(hue,saturation,value)
+	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 
 def cycle_hue_around(branch,branch_vine,pixel,t):
@@ -197,7 +91,7 @@ def cycle_hue_around(branch,branch_vine,pixel,t):
 	value = 200
 	period = 4
 	hue = cycle_around_continuous(branch,t,period)
-	return hsv_to_rgb(hue,saturation,value)
+	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 
 # def cycle_hue_around(branch,t,saturation,value):
@@ -222,21 +116,21 @@ def cycle_hue_in(branch,branch_vine,pixel,t):
 	value = 200
 	period = 2
 	hue = cycle_in_continuous(branch_vine,t,period)
-	return hsv_to_rgb(hue,saturation,value)
+	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 def cycle_value_out(branch,branch_vine,pixel,t):
 	hue = 0.3
 	saturation = 0.5
 	period = 4
 	value = 255 * cycle_out_continuous(branch_vine,t,period)
-	return hsv_to_rgb(hue,saturation,value)
+	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 def cycle_value_in(branch,branch_vine,pixel,t):
 	hue = 0.7
 	saturation = 0.5
 	period = 4
 	value = 255 * cycle_in_continuous(branch_vine,t,period)
-	return hsv_to_rgb(hue,saturation,value)
+	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 
 def cycle_value_around(branch,branch_vine,pixel,t):
@@ -244,21 +138,22 @@ def cycle_value_around(branch,branch_vine,pixel,t):
 	saturation = 0.5
 	period = 4
 	value = 255 * cycle_clockwise_continuous(branch,t,period)
-	return hsv_to_rgb(hue,saturation,value)
+	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 def cycle_value_up(branch,branch_vine,pixel,t):
 	hue = 0.3
 	saturation = 0.5
 	period = 4
 	value = 255 * cycle_up_continuous(pixel,t,period)
-	return hsv_to_rgb(hue,saturation,value)
+	return color_utils.hsv_to_rgb(hue,saturation,value)
 
 def cycle_value_down(branch,branch_vine,pixel,t):
 	hue = 0.7
 	saturation = 0.5
 	period = 4
 	value = 255 * cycle_down_continuous(pixel,t,period)
-	return hsv_to_rgb(hue,saturation,value)
+	return color_utils.hsv_to_rgb(hue,saturation,value)
+	
 # def example_cycle_hue_up(branch,branch_vine,vine_pixel,t):
 # 	saturation = 0.5
 # 	value = 200
@@ -278,8 +173,8 @@ def cycle_value_down(branch,branch_vine,pixel,t):
 
 
 def make_every_other_green(pixels, t):
-	for i in xrange(VINES):
-		for j in xrange(PPV):
+	for i in xrange(constants.num_vines):
+		for j in xrange(constants.num_lights_per_vine):
 			pixels[i][j] = (0, 255, 0) if j % 2 == 1 else (0,0,0)
 
 def make_every_other_blue(pixels, t):
@@ -293,9 +188,9 @@ def make_every_other_red(pixels, t):
 			pixels[i][j] = (255, 0, 0) if j % 2 == 1 else (0, 0, 0)
 
 def make_every_other_orchid(pixels, t):
-	for i in xrange(VINES):
-		for j in xrange(PPV):
-			pixels[i][j] = ORCHID if j % 2 == 1 else (80 * t, 80 * t, 80 * t)
+	for i in xrange(constants.num_vines):
+		for j in xrange(constants.num_lights_per_vine):
+			pixels[i][j] = constants.orchid if j % 2 == 1 else (80 * t, 80 * t, 80 * t)
 
 # def cycle_hue_around(pixels, t):
 # 	for branch in xrange(BRANCHES):
@@ -326,7 +221,7 @@ def make_every_other_orchid(pixels, t):
 
 def add_sparkles(pixels, sparkle_factor):
 	fraction_of_pixels_per_sparkle_factor = 0.05
-	pixels_per_sparkle_factor = int(fraction_of_pixels_per_sparkle_factor * PIXELS)
+	pixels_per_sparkle_factor = int(fraction_of_pixels_per_sparkle_factor * constants.num_pixels)
 	#print pixels_per_sparkle_factor
 	for i in xrange(pixels_per_sparkle_factor * sparkle_factor):
 		pixels.flat[random.randint(0, pixels.size-1)] = (255,255,255)
@@ -365,7 +260,7 @@ def get_sparkle_factor(s):
 # you can also read / write pixels directly with pixels.flat[index]
 pixels = numpy.zeros((constants.num_vines, constants.num_lights_per_vine), dtype=numpy.object)
 
-tree_pixels = numpy.zeros((BRANCHES, VINES_PER_BRANCH, PIXELS_PER_VINE), dtype=numpy.object)
+tree_pixels = numpy.zeros((constants.num_branches, constants.num_vines_per_branch, constants.num_lights_per_vine), dtype=numpy.object)
 
 client = opc.Client(SERVER)
 
@@ -375,14 +270,14 @@ try:
 	for pattern in get_next_pattern():
 		pattern_start = time.time()
 		print "Pattern ", pattern
-		while time.time() - pattern_start < TIME_PER_PATTERN:
+		while time.time() - pattern_start < constants.time_per_pattern:
 			# render current frame
 			t = time.time() - pattern_start
-			for b in xrange(BRANCHES):
-				for v in xrange(VINES_PER_BRANCH):
-					for p in xrange(PIXELS_PER_VINE):
+			for b in xrange(constants.num_branches):
+				for v in xrange(constants.num_vines_per_branch):
+					for p in xrange(constants.num_lights_per_vine):
 						color = pattern(b,v,p,t)
-						pixels[b * VINES_PER_BRANCH + v][p] = color
+						pixels[b * constants.num_vines_per_branch + v][p] = color
 			# pattern(pixels, time.time() - pattern_start)
 			# add sparkle?
 			sparkle = get_sparkle_factor(s)
@@ -390,6 +285,6 @@ try:
 				add_sparkles(pixels, sparkle)
 
 			client.put_pixels(pixels.flat, channel = 0)
-			time.sleep(1/FPS)
+			time.sleep(1/constants.frames_per_second)
 
 except KeyboardInterrupt: pass
