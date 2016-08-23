@@ -6,6 +6,7 @@ import constants
 import math
 import random
 import make_it_rain
+import fireworks
 import time
 
 def cycle_value_in_cosine(branch,branch_vine,vine_pixel,t):
@@ -151,6 +152,10 @@ def explode_hue_out(branch,branch_vine,vine_pixel,t):
 
     return color_utils.hsv_to_rgb(hue,saturation,value)
 
+class pattern():
+    def __init__(self, get_pixel_color):
+        self.get_pixel_color = types.MethodType( get_pixel_color, self )
+
 class blend_transition:
 
     def __init__(self, pattern1, pattern2):
@@ -200,8 +205,11 @@ class transition_to_rain(blend_transition):
 rain = make_it_rain.make_it_rain()
 rain_function = rain.get_pixel_color
 transition1 = blend_transition(rain_function, crazy_spiral_down).get_pixel_color
+fireworks_instance = fireworks.fireworks()
+fireworks_function = fireworks_instance.get_pixel_color
 
 active_patterns = [
+    fireworks_function,
     spiral_down,
     rain_function,
     explode_hue_out,
@@ -219,4 +227,4 @@ transitions = []
 for i in range(len(active_patterns)):
     transitions.append(blend_transition(active_patterns[i], active_patterns[(i+1)%len(active_patterns)]))
 
-transitions[0] = transition_to_rain(active_patterns[0], rain)
+transitions[1] = transition_to_rain(active_patterns[1], rain)
