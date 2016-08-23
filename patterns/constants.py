@@ -22,6 +22,7 @@ pattern_runtime = 60*.25
 fade_in_time = .55
 fade_out_time = pattern_runtime-fade_in_time
 time_per_pattern = 20; # in minutes
+time_per_transition = 10 # in seconds
 
 # RGB default colors for diagnostics
 red = Color((255, 0, 0))

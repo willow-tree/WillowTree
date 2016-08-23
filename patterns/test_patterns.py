@@ -6,6 +6,7 @@ import constants
 import math
 import random
 import make_it_rain
+import time
 
 def cycle_value_in_cosine(branch,branch_vine,vine_pixel,t):
     hue = 0.3
@@ -150,22 +151,62 @@ def explode_hue_out(branch,branch_vine,vine_pixel,t):
 
     return color_utils.hsv_to_rgb(hue,saturation,value)
 
-def merge_crazy_with_rain(branch,branch_vine,vine_pixel,t):
-    pat1_time = 5
-    interpolate_time = 5
-    pat2_time = 5
-    pat1 = crazy_spiral_down(branch,branch_vine,vine_pixel,t)
-    pat2 = rain_down.make_it_rain().get_pixel_color(branch,branch_vine,vine_pixel,t)
-    pat3 = hahahaha
+class blend_transition:
+
+    def __init__(self, pattern1, pattern2):
+        self.pattern1 = pattern1
+        self.pattern2 = pattern2
+        self.reset(time.time())
+
+    def reset(self, t):
+        self.start_time = t
+
+    def get_pixel_color(self, branch, branch_vine, vine_pixel, t):
+        factor = max((constants.time_per_transition - t + self.start_time) / constants.time_per_transition , 0 )
+        a1, a2, a3 = self.pattern1(branch, branch_vine, vine_pixel, t)
+        b1, b2, b3 = self.pattern2(branch, branch_vine, vine_pixel, t)
+        return factor * a1 + (1-factor) * b1, factor * a2 + (1-factor) * b2, factor * a3 + (1-factor) * b3
+
+class transition_to_rain(blend_transition):
+
+    def __init__(self, pattern1, rain_instance):
+        self.rain = rain_instance
+        super().__init__(pattern1, rain_instance.get_pixel_color)
+        self.reset(time.time())
+
+    def reset(self, t):
+        self.pattern2_on = False
+        super().reset(t)
+
+    def get_pixel_color(self, branch, branch_vine, vine_pixel, t):
+        factor1 = max((constants.time_per_transition - t + self.start_time) / constants.time_per_transition , 0 )
+        a1, a2, a3 = self.pattern1(branch, branch_vine, vine_pixel, t)
+        b1, b2, b3 = self.pattern2(branch, branch_vine, vine_pixel, t)
+        if self.pattern2_on == False and factor1 < 0.5:
+            self.rain.reset()
+            self.pattern2_on = True
+        factor2 = int(self.pattern2_on)
+        return factor1 * a1 + factor2 * b1, factor1 * a2 + factor2 * b2, factor1 * a3 + factor2 * b3
 
 
+    #
+    # pat1_time = 5
+    # interpolate_time = 5
+    # pat2_time = 5
+    # pat1 = crazy_spiral_down(branch,branch_vine,vine_pixel,t)
+    # pat2 = rain_down.make_it_rain().get_pixel_color(branch,branch_vine,vine_pixel,t)
+    # pat3 = hahahaha
 
-active = [
-    make_it_rain.make_it_rain().get_pixel_color,
+rain = make_it_rain.make_it_rain()
+rain_function = rain.get_pixel_color
+transition1 = blend_transition(rain_function, crazy_spiral_down).get_pixel_color
+
+active_patterns = [
+    spiral_down,
+    rain_function,
     explode_hue_out,
     explode_cool_hue_out,
     barber_shop_pole,
-    spiral_down,
     crazy_spiral_down,
     # cycle_value_in_cosine,
     # cycle_value_out_cosine,
@@ -173,3 +214,9 @@ active = [
     # cycle_value_counterclockwise_cosine,
     # cycle_value_down,
 ]
+
+transitions = []
+for i in range(len(active_patterns)):
+    transitions.append(blend_transition(active_patterns[i], active_patterns[(i+1)%len(active_patterns)]))
+
+transitions[0] = transition_to_rain(active_patterns[0], rain)

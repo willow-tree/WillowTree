@@ -33,32 +33,56 @@ SERIAL = None
 tree_pixels = numpy.zeros((constants.num_branches, constants.num_vines_per_branch, constants.num_lights_per_vine), dtype=numpy.object)
 
 # Select the patterns to use, and create an in-order cycle
-patterns = test_patterns.active
-pattern_cycle = cycle(patterns)
+patterns = test_patterns.active_patterns
+transitions = test_patterns.transitions
+# pattern_cycle = cycle(patterns)
 
 client = opc.Client(SERVER)
 
 s = serial.Serial(SERIAL, 115200, timeout=0)
 
 try:
-	for pattern in pattern_cycle:
-		pattern_start = time.time()
-		print("Pattern ", pattern)
-		while time.time() - pattern_start < constants.time_per_pattern:
-			# render current frame
-			t = time.time() - pattern_start
-			for b in range(constants.num_branches):
-				for v in range(constants.num_vines_per_branch):
-					for p in range(constants.num_lights_per_vine):
-						color = pattern(b,v,p,t)
-						tree_pixels[b][v][p] = color
-			# add sparkle
-			sparkle = sparkles.get_sparkle_factor(s)
-			if sparkle > 0:
-			 	sparkles.add_sparkles(tree_pixels, sparkle)
+    while True:
+        for i in range(len(patterns)):
+            pattern = patterns[i]
+            pattern_start = time.time()
+            print("Pattern ", pattern)
+            while time.time() - pattern_start < constants.time_per_pattern:
+    			# render current frame
+                #t = time.time() - pattern_start
+                for b in range(constants.num_branches):
+                    for v in range(constants.num_vines_per_branch):
+                        for p in range(constants.num_lights_per_vine):
+                            color = pattern(b,v,p,time.time())
+                            tree_pixels[b][v][p] = color
+    			# add sparkle
+                sparkle = sparkles.get_sparkle_factor(s)
+                if sparkle > 0:
+                    sparkles.add_sparkles(tree_pixels, sparkle)
 
-			# Push values to vines, sleep before next frame
-			client.put_pixels(tree_pixels.flat, channel = 0)
-			time.sleep(1/constants.frames_per_second)
+    			# Push values to vines, sleep before next frame
+                client.put_pixels(tree_pixels.flat, channel = 0)
+                time.sleep(1/constants.frames_per_second)
+
+            transition = transitions[i]
+            transition.reset(time.time())
+            pattern_start = time.time()
+            print("Transition ", transition)
+            while time.time() - pattern_start < constants.time_per_transition:
+                # render current frame
+                t = time.time() - pattern_start
+                for b in range(constants.num_branches):
+                    for v in range(constants.num_vines_per_branch):
+                        for p in range(constants.num_lights_per_vine):
+                            color = transition.get_pixel_color(b,v,p,time.time())
+                            tree_pixels[b][v][p] = color
+    			# add sparkle
+                sparkle = sparkles.get_sparkle_factor(s)
+                if sparkle > 0:
+                    sparkles.add_sparkles(tree_pixels, sparkle)
+
+    			# Push values to vines, sleep before next frame
+                client.put_pixels(tree_pixels.flat, channel = 0)
+                time.sleep(1/constants.frames_per_second)
 
 except KeyboardInterrupt: pass

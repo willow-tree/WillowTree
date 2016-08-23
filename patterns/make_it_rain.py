@@ -17,6 +17,9 @@ class make_it_rain:
         self.last_update_time = 0
         self.raindrop_positions = []
 
+    def reset(self):
+        self.raindrop_positions = []
+
     def start_raindrop(self):
         random_branch = random.randint(0,constants.num_branches)
         random_branch_vine = random.randint(0,constants.num_vines_per_branch)
@@ -30,7 +33,7 @@ class make_it_rain:
         # if the pattern restarts, then re-initialize the class variables
         if t - self.last_update_time < 0:
             self.last_update_time = 0
-            self.raindrop_positions = []
+            #self.raindrop_positions = []
 
         # after the time_between_actions has passed, update the head positions of all raindrops
         if t - self.last_update_time > self.time_between_actions:
