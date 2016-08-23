@@ -41,22 +41,21 @@ client = opc.Client(SERVER)
 s = serial.Serial(SERIAL, 115200, timeout=0)
 
 try:
-	while True:
-		pattern = pattern_cycle.next()
+	for pattern in pattern_cycle:
 		pattern_start = time.time()
-		print "Pattern ", pattern
+		print("Pattern ", pattern)
 		while time.time() - pattern_start < constants.time_per_pattern:
 			# render current frame
 			t = time.time() - pattern_start
-			for b in xrange(constants.num_branches):
-				for v in xrange(constants.num_vines_per_branch):
-					for p in xrange(constants.num_lights_per_vine):
+			for b in range(constants.num_branches):
+				for v in range(constants.num_vines_per_branch):
+					for p in range(constants.num_lights_per_vine):
 						color = pattern(b,v,p,t)
 						tree_pixels[b][v][p] = color
 			# add sparkle
 			sparkle = sparkles.get_sparkle_factor(s)
 			if sparkle > 0:
-				sparkles.add_sparkles(tree_pixels, sparkle)
+			 	sparkles.add_sparkles(tree_pixels, sparkle)
 
 			# Push values to vines, sleep before next frame
 			client.put_pixels(tree_pixels.flat, channel = 0)
