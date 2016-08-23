@@ -45,9 +45,8 @@ class make_it_rain:
         brightness = 0
         for position in self.raindrop_positions:
             if position[0] == branch and position[1] == branch_vine and position[2] > vine_pixel:
-                brightness += max (255 * (1 - self.trailing_drop_decay_factor * (position[2] - vine_pixel ), 0)
+                brightness += max (255 * (1 - self.trailing_drop_decay_factor * (position[2] - vine_pixel )), 0)
             if position[0] == branch and position[1] == branch_vine and position[2] < vine_pixel:
-                brightness += max (255 * (1 - self.leading_drop_decay_factor * (vine_pixel - position[2] ), 0)
-
+                brightness += max (255 * (1 - self.leading_drop_decay_factor * (vine_pixel - position[2] )), 0)
         # hue the raindrop towards light blue
         return (.5 * brightness,.8 * brightness,brightness)

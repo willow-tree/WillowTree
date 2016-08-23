@@ -5,7 +5,7 @@ import color_utils
 import constants
 import math
 import random
-import rain_down
+import make_it_rain
 
 def cycle_value_in_cosine(branch,branch_vine,vine_pixel,t):
     hue = 0.3
@@ -161,7 +161,7 @@ def merge_crazy_with_rain(branch,branch_vine,vine_pixel,t):
 
 
 active = [
-    rain_down.make_it_rain().get_pixel_color,
+    make_it_rain.make_it_rain().get_pixel_color,
     explode_hue_out,
     explode_cool_hue_out,
     barber_shop_pole,

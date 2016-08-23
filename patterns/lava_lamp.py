@@ -6,7 +6,7 @@ import random
 import math
 import numpy
 
-random_values = [random.random() for ii in xrange(constants.num_vines * constants.num_lights_per_vine)]
+random_values = [random.random() for ii in range(constants.num_vines * constants.num_lights_per_vine)]
 
 def all_pixels_at_time(pixels, t):
 
