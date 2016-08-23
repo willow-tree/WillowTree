@@ -2,4 +2,4 @@
 DIRNAME="`dirname "$0"`"
 cd "$DIRNAME"
 
-patterns/runner.py -l layouts/willow_tree.json
+python3 patterns/runner.py -l layouts/willow_tree.json
