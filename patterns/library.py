@@ -1,6 +1,23 @@
 import math
 import constants
 
+
+def cartesian_coordinates(branch, vine, pixel):
+	inner_radius = 0.6
+	vine_distance = 0.3
+	pixel_distance = 0.08
+
+	angle = branch * 2 * math.pi / 8
+	x = math.cos(angle) * (inner_radius + (vine * vine_distance))
+	y = math.sin(angle) * (inner_radius + (vine * vine_distance))
+	z = 0 + pixel_distance * pixel
+	return x,y,z
+
+def distance(branch1, vine1, pixel1, branch2, vine2, pixel2):
+    x1, y1, z1 = cartesian_coordinates(branch1, vine1, pixel1)
+    x2, y2, z2 = cartesian_coordinates(branch2, vine2, pixel2)
+    return ((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2) ** 0.5
+
 def cycle_clockwise_continuous(branch,t,period):
 	return (t / period + 1.0 * (branch + 1) / constants.num_branches) % 1
 
