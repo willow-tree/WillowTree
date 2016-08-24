@@ -9,7 +9,7 @@ import random
 class make_it_rain:
 
     probability_of_rain = 0.2
-    time_between_actions = 0.01
+    time_between_actions = 0.003
     trailing_drop_decay_factor = 0.1
     leading_drop_decay_factor = 0.8
 
@@ -33,7 +33,6 @@ class make_it_rain:
         # if the pattern restarts, then re-initialize the class variables
         if t - self.last_update_time < 0:
             self.last_update_time = 0
-            #self.raindrop_positions = []
 
         # after the time_between_actions has passed, update the head positions of all raindrops
         if t - self.last_update_time > self.time_between_actions:
@@ -44,12 +43,17 @@ class make_it_rain:
             if random.random() > 1 - self.probability_of_rain:
                 self.start_raindrop()
 
-        #set the brightness of the current pixel
+        # set the brightness of the current pixel
         brightness = 0
         for position in self.raindrop_positions:
             if position[0] == branch and position[1] == branch_vine and position[2] > vine_pixel:
                 brightness += max (255 * (1 - self.trailing_drop_decay_factor * (position[2] - vine_pixel )), 0)
             if position[0] == branch and position[1] == branch_vine and position[2] < vine_pixel:
                 brightness += max (255 * (1 - self.leading_drop_decay_factor * (vine_pixel - position[2] )), 0)
+
+        # add some shimmer to the rain with some probability
+        # if (random.random() > 0.99):
+        #     brightness = 0.5 * brightness
+
         # hue the raindrop towards light blue
         return (.5 * brightness,.8 * brightness,brightness)
