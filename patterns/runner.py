@@ -22,10 +22,10 @@ except ImportError:
     import simplejson as json
 
 #SERVER = "10.0.0.9:7890"
-SERVER = "127.0.0.1:7890"
-#SERIAL = "/dev/ttyUSB0"
+# SERVER = "127.0.0.1:7890"
+SERIAL = "/dev/ttyUSB0"
 #SERIAL = "/dev/tty.wchusbserial1420"
-SERIAL = None
+# SERIAL = None
 
 # this is our pixels array.
 # number of vines is pixels.shape[0] and pixels per vine is pixels.shape[1]

@@ -5,20 +5,47 @@ import color_utils
 import constants
 import math
 import random
+import time
+import numpy
 
 class make_it_rain:
 
-    probability_of_rain = 0.2
-    time_between_actions = 0.003
-    trailing_drop_decay_factor = 0.1
+    probability_of_rain = 0.1
+    # time_between_actions = 0.003
+    trailing_drop_decay_factor = 0.15
     leading_drop_decay_factor = 0.8
 
     def __init__(self):
         self.last_update_time = 0
         self.raindrop_positions = []
+        self.time_between_actions = 0.003
+
+        self.last_frame_timestamp = time.time()
+        self.frame_durations = []
+        self.average_frame_duration = 0
+
+
+    def update_average_frame_duration(self, branch, branch_vine, vine_pixel, t):
+        if branch == 0 and branch_vine == 0 and vine_pixel == 0:
+            # print('frame durations!!  branch: ',branch,'branch_vine: ',branch_vine,'vine_pixel: ',vine_pixel,'t: ',t)
+            # print('frame_durations: ',self.frame_durations)
+            # print('average_frame_duration: ',self.average_frame_duration)
+            # print('time_between_actions: ',self.time_between_actions)
+            # print ('probability_of_rain: ',self.probability_of_rain)
+            last_frame_duration = t - self.last_frame_timestamp
+            self.last_frame_timestamp = t
+            if len(self.frame_durations) > 10:
+                self.frame_durations = self.frame_durations[1:10]
+            self.frame_durations.append(last_frame_duration)
+            self.average_frame_duration = numpy.average(self.frame_durations)
+
 
     def reset(self):
+        self.last_update_time = 0
+        self.last_frame_timestamp = time.time()
         self.raindrop_positions = []
+        self.frame_durations = []
+        self.average_frame_duration = 0
 
     def start_raindrop(self):
         random_branch = random.randint(0,constants.num_branches)
@@ -29,10 +56,33 @@ class make_it_rain:
 
 
     def get_pixel_color(self, branch, branch_vine, vine_pixel, t):
+        # time.sleep(.0005)
 
         # if the pattern restarts, then re-initialize the class variables
-        if t - self.last_update_time < 0:
-            self.last_update_time = 0
+        # if t - self.last_update_time < 0:
+        #     self.last_update_time = 0
+        #     self.reset()
+
+        self.update_average_frame_duration(branch, branch_vine, vine_pixel, t)
+        #
+        # want the time between actions to be no more than 2 pixels down
+        # means time_between_actions < 80 pixel steps
+        # frame duration is average time for 1320 pixels
+
+        #if the frame rate is too slow, slow down the actions and reduce rain
+        if self.average_frame_duration > 18 * self.time_between_actions:
+            self.time_between_actions = 1.5 * self.time_between_actions
+            self.probability_of_rain = 0.95 * self.probability_of_rain
+
+        #if the frame rate is too fast, speed up the actions and add more rain
+        if len(self.frame_durations) == 20 and self.average_frame_duration < 9 * self.time_between_actions:
+            self.time_between_actions = (2/3) * self.time_between_actions
+            self.probability_of_rain = 1.1 * self.probability_of_rain
+
+
+
+
+
 
         # after the time_between_actions has passed, update the head positions of all raindrops
         if t - self.last_update_time > self.time_between_actions:
