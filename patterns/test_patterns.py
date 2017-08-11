@@ -279,6 +279,7 @@ active_patterns = [
     # rain_function,
     # explode_cool_hue_out,
     # fireworks_function,
+    fireworks_function,
     hue_pair_spiral,
     fireworks_function,
     explode_cool_hue_out,

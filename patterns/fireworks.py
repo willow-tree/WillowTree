@@ -18,7 +18,7 @@ class fireworks:
     def __init__(self):
         self.last_update_time = 0
         self.firework_positions = []
-        # self.last_frame_timestamp = time.time()
+        self.last_frame_timestamp = time.time()
         self.frame_durations = []
         #guess the frame rate
         self.average_frame_duration = 0
