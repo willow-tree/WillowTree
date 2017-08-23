@@ -219,7 +219,28 @@ class transition_to_rain(blend_transition):
         factor2 = int(self.pattern2_on)
         return factor1 * a1 + factor2 * b1, factor1 * a2 + factor2 * b2, factor1 * a3 + factor2 * b3
 
+class transition_to_fireworks(blend_transition):
 
+    def __init__(self, pattern1, fireworks_instance):
+        self.fireworks = fireworks_instance
+        super().__init__(pattern1, fireworks_instance.get_pixel_color)
+        self.reset(time.time())
+
+    def reset(self, t):
+        self.pattern2_on = False
+        super().reset(t)
+
+    def get_pixel_color(self, branch, branch_vine, vine_pixel, t):
+        factor1 = max((constants.time_per_transition - t + self.start_time) / constants.time_per_transition , 0 )
+        a1, a2, a3 = self.pattern1(branch, branch_vine, vine_pixel, t)
+        b1, b2,b3 = 0, 0, 0
+        if self.pattern2_on == False and factor1 < 0.5:
+            self.fireworks.reset()
+            self.pattern2_on = True
+        if self.pattern2_on:
+            b1, b2, b3 = self.pattern2(branch, branch_vine, vine_pixel, t)
+            # factor2 = int(self.pattern2_on)
+        return factor1 * a1 + b1, factor1 * a2 + b2, factor1 * a3 + b3
     #
     # pat1_time = 5
     # interpolate_time = 5
@@ -236,13 +257,13 @@ fireworks_function = fireworks_instance.get_pixel_color
 
 active_patterns = [
     fireworks_function,
-    spiral_down,
     rain_function,
-    explode_hue_out,
+    hue_pair_spiral,
     explode_cool_hue_out,
-#    barber_shop_pole,
     crazy_spiral_down,
-    # cycle_value_in_cosine,
+    explode_hue_out,
+    hue_spiral_down,
+   # cycle_value_in_cosine,
     # cycle_value_out_cosine,
     # cycle_value_clockwise_cosine,
     # cycle_value_counterclockwise_cosine,
@@ -253,4 +274,5 @@ transitions = []
 for i in range(len(active_patterns)):
     transitions.append(blend_transition(active_patterns[i], active_patterns[(i+1)%len(active_patterns)]))
 
+transitions[0] = transition_to_fireworks(active_patterns[0], fireworks_instance)
 transitions[1] = transition_to_rain(active_patterns[1], rain)
