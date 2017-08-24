@@ -23,6 +23,8 @@ except ImportError:
 
 #SERVER = "10.0.0.9:7890"
 SERVER = "127.0.0.1:7890"
+#use this ip address to send to the control box
+#SERVER = "192.168.7.2:7890"
 #SERIAL = "/dev/ttyUSB0"
 #SERIAL = "/dev/tty.wchusbserial1420"
 SERIAL = None
