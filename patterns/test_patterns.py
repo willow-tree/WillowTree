@@ -9,6 +9,33 @@ import make_it_rain
 import fireworks
 import time
 
+def value_wave(t,period):
+    t = (t % period) / period
+    return max(0,min(min(16 * t - 4, 1),4 - 4 * t))
+
+def bounded_value_wave(t,period,lower_bound):
+    return value_wave(t,period) * (1 - lower_bound) + lower_bound
+
+def saturation_wave(t,period):
+    t = (t % period) / period
+    return max(0,min(1,max(3.5 - 8 * t,8 * t - 3.5)))
+
+def bounded_saturation_wave(t,period,lower_bound):
+    return saturation_wave(t,period) * (1 - lower_bound) + lower_bound
+
+def mesh(branch,branch_vine,vine_pixel,t):
+    wave_period = 10
+    lower_bound = 0.2
+    hue_period = 60
+    hue = (t % hue_period) / hue_period
+    if (branch_vine + branch) % 2 == 1:
+        vine_pixel = constants.num_lights_per_vine - vine_pixel
+    time_offset = (vine_pixel * wave_period) / (8 * constants.num_lights_per_vine)
+    saturation_offset = (vine_pixel + branch_vine * 3 * wave_period) / (8 * constants.num_lights_per_vine)
+    value = 250 * bounded_value_wave(t + time_offset,wave_period,lower_bound)
+    saturation = bounded_saturation_wave(t + saturation_offset, wave_period, lower_bound)
+    return color_utils.hsv_to_rgb(hue,saturation,value)
+
 def cycle_value_in_cosine(branch,branch_vine,vine_pixel,t):
     hue = 0.3
     saturation = 0.7
@@ -99,30 +126,30 @@ def crazy_spiral_down(branch,branch_vine,vine_pixel,t):
     value = 255 * library.cycle_clockwise_cosine(branch - branch_vine - vine_pixel,t,value_period)
     return color_utils.hsv_to_rgb(hue,saturation,value)
 
-def candy_cane_stick(branch,branch_vine,vine_pixel,t):
-    r = 255
-    g = 255
-    b = 255
-    if branch % 4 == 0 or branch % 4 == 1:
-        g = 0
-        b = 0
-    return (r,g,b)
+# def candy_cane_stick(branch,branch_vine,vine_pixel,t):
+#     r = 255
+#     g = 255
+#     b = 255
+#     if branch % 4 == 0 or branch % 4 == 1:
+#         g = 0
+#         b = 0
+#     return (r,g,b)
 
-def barber_shop_pole(branch,branch_vine,vine_pixel,t):
-    r = 255
-    g = 255
-    b = 255
+# def barber_shop_pole(branch,branch_vine,vine_pixel,t):
+#     r = 255
+#     g = 255
+#     b = 255
 
-    branch_period = 5
-    stripe_length = 20.0
-    branch_vine_slope = 2
+#     branch_period = 5
+#     stripe_length = 20.0
+#     branch_vine_slope = 2
 
-    branch = int (branch - 8 * t / branch_period + 2 * vine_pixel / stripe_length - branch_vine * branch_vine_slope / 5.0) % 8
+#     branch = int (branch - 8 * t / branch_period + 2 * vine_pixel / stripe_length - branch_vine * branch_vine_slope / 5.0) % 8
 
-    if branch % 4 == 0 or branch % 4 == 1:
-        g = 0
-        b = 0
-    return (r,g,b)
+#     if branch % 4 == 0 or branch % 4 == 1:
+#         g = 0
+#         b = 0
+#     return (r,g,b)
 
 def hue_pair_spiral(branch,branch_vine,vine_pixel,t):
     # time.sleep(.0005)
@@ -152,10 +179,10 @@ def hue_pair_spiral(branch,branch_vine,vine_pixel,t):
 
 def explode_cool_hue_out(branch,branch_vine,vine_pixel,t):
     saturation = 0.88
-    value = 255
+    value = 250
     period = 1.0
     out_period = 3.0
-    vertical_period = 1.5
+    vertical_period = 0.5
     hue = 0.5 + 0.5 * math.cos(t / period - branch_vine / out_period - (vine_pixel - 17.0)**2 / (17.0**2 * vertical_period))
     #70/360 = .1944
     #240/360 = .6666
@@ -166,7 +193,7 @@ def explode_cool_hue_out(branch,branch_vine,vine_pixel,t):
 
 def explode_hue_out(branch,branch_vine,vine_pixel,t):
     saturation = 0.88
-    value = 255
+    value = 250
     period = 4
     out_period = 1.2
     vertical_period = 4
@@ -259,10 +286,11 @@ active_patterns = [
     explode_cool_hue_out,
     fireworks_function,
     crazy_spiral_down,
-    hue_pair_spiral,
+    mesh,
+    #hue_pair_spiral,
     rain_function,
     spiral_down,
-    explode_hue_out,
+    #explode_hue_out,
    # cycle_value_in_cosine,
     # cycle_value_out_cosine,
     # cycle_value_clockwise_cosine,

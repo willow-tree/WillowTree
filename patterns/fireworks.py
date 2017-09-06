@@ -51,11 +51,13 @@ class fireworks:
         #set the brightness of the current pixel
         r,g,b = 0,0,0
         brightness = 0
+        random_val = random.random()
+
         for position in self.firework_positions:
 
             added_r, added_g, added_b = 0,0,0
 
-            distance_to_firework = library.distance(position[0], position[1], position[2], branch, branch_vine, vine_pixel)
+            distance_squared_to_firework = library.distance_squared(position[0], position[1], position[2], branch, branch_vine, vine_pixel)
             age = position[3]
             hue = position[4]
             if age < 0:
@@ -66,16 +68,24 @@ class fireworks:
                     brightness += max (255 * (1 - 0.05* (vine_pixel - tracer_height ) - 1.5 / (tracer_height - position[2])), 0)
                 added_r, added_g, added_b = color_utils.hsv_to_rgb(hue,1 - brightness / 255,brightness)
             else:
-                radius = math.log(age + 1) * 0.3
-                if distance_to_firework > radius and distance_to_firework < radius + .2:
+                radius_squared = (math.log(age + 1) * 0.3) ** 2
+                radius_plus_squared = (math.log(age + 1) * 0.3 + 0.2) ** 2
+                if distance_squared_to_firework > radius_squared and distance_squared_to_firework < radius_plus_squared:
                     value = max( 255 - (.02 * age) ** 4, 0)
-                    #hue = age * .001
                     saturation = min( .01 * age, 1)
+                    if value > 50 and value < 220 and random_val > 0.7:
+                        value = 255
+                        saturation = 0
+                    #hue = age * .001
                     added_r, added_g, added_b = color_utils.hsv_to_rgb(hue,saturation,value)
 
-            if random.random() > age * .0005:
+            if random_val > age * .0005:
                 r += min( added_r, 255)
                 g += min( added_g, 255)
                 b += min( added_b, 255)
+                # if age > 40 and random.random() > 0.8:
+                    # r = 255
+                    # g = 255
+                    # b = 255
 
         return (r,g,b)

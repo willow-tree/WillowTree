@@ -18,6 +18,11 @@ def distance(branch1, vine1, pixel1, branch2, vine2, pixel2):
     x2, y2, z2 = cartesian_coordinates(branch2, vine2, pixel2)
     return ((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2) ** 0.5
 
+def distance_squared(branch1, vine1, pixel1, branch2, vine2, pixel2):
+    x1, y1, z1 = cartesian_coordinates(branch1, vine1, pixel1)
+    x2, y2, z2 = cartesian_coordinates(branch2, vine2, pixel2)
+    return ((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
+
 def cycle_clockwise_continuous(branch,t,period):
 	return (t / period + 1.0 * (branch + 1) / constants.num_branches) % 1
 
